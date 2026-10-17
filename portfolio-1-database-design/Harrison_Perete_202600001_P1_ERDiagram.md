@@ -4,6 +4,7 @@ This diagram shows the four tables, their fields and how they connect.
 
 ```mermaid
 erDiagram
+    direction LR
     book ||--o{ book_copy : has
     member ||--o{ loan : borrows
     book_copy ||--o{ loan : appears_in
