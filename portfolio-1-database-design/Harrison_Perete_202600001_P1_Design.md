@@ -1,8 +1,8 @@
 # Library Borrowing System Database Design
 
-## Entities
+## My entities
 
-The design uses four entities:
+I chose four entities for my library borrowing system:
 
 | Entity | Information stored |
 | --- | --- |
@@ -11,11 +11,11 @@ The design uses four entities:
 | book_copy | One physical copy of a book |
 | loan | One borrowing of a physical copy by a member |
 
-Book and book_copy are separate because several physical copies can share the same title and ISBN. A loan identifies the physical copy that was borrowed.
+I kept book and book_copy separate. For example, the library may have three copies of *Things Fall Apart*. I record the book details once, give each copy its own barcode, and use the loan to record which copy a member borrowed.
 
-## Choose attributes and keys
+### My attributes and keys
 
-A **primary key (PK)** identifies a row. A **foreign key (FK)** links it to a row in another table. **Unique** means a value cannot be repeated in that column. **Required** means the value cannot be empty (`NULL`).
+I use an automatically generated ID for each record. In the tables below, **unique** means no repeated values. **Required** means the value cannot be `NULL` (missing); checking for blank text is a separate rule.
 
 | Entity | Attributes and proposed PostgreSQL types | Keys and required values |
 | --- | --- | --- |
@@ -24,27 +24,29 @@ A **primary key (PK)** identifies a row. A **foreign key (FK)** links it to a ro
 | book_copy | copy_id BIGINT; book_id BIGINT; barcode VARCHAR(30) | PK: copy_id. FK: book_id → book.book_id. Unique: barcode. All required. |
 | loan | loan_id BIGINT; member_id BIGINT; copy_id BIGINT; borrowed_at TIMESTAMPTZ; due_at TIMESTAMPTZ; returned_at TIMESTAMPTZ | PK: loan_id. FKs: member_id → member.member_id; copy_id → book_copy.copy_id. All required except returned_at. |
 
-The primary-key IDs will be generated automatically. `TIMESTAMPTZ` stores a date and time representing an instant, with time-zone-aware input and display.
+`BIGINT` holds whole numbers, such as IDs. `VARCHAR(120)` holds text up to 120 characters. `TIMESTAMPTZ` holds a date and time with time-zone-aware input and display.
 
-**Additional design assumption:** each catalogue record represents one ISBN-bearing edition, and its ISBN is unique. This design covers ISBN-bearing editions.
+I leave returned_at empty until the copy is returned. For example, a new loan has a borrowing date and due date, but no return date yet.
 
-## Describe the relationships
+**My assumption:** I record editions with an ISBN, and each ISBN appears once in book.
 
-| Parent → child | Relationship | Meaning |
+### My relationships
+
+| Tables linked | Relationship | Meaning |
 | --- | --- | --- |
 | book → book_copy | One to many | A book record can have zero or more copies; each copy belongs to exactly one book record. |
 | member → loan | One to many | A member can have zero or more loans; each loan belongs to exactly one member. |
 | book_copy → loan | One to many over time | A copy can have zero or more historical loans; each loan refers to exactly one copy. |
 
-Historical loans can be numerous, but a copy can have only one open loan at a time. This needs an additional constraint; the foreign key alone does not prevent two simultaneous loans.
+For example, copy 10 can be borrowed in January and again in February. I keep both loan records, but only one can be open at a time. An open loan has no return date. A foreign key links the records; it does not stop the copy being lent twice at the same time.
 
-## Connect the rules to the design
+### How I will apply my rules
 
-- Unique membership numbers, emails and barcodes address Rules 1 and 2.
-- Required foreign keys address the links in Rules 2 and 3.
-- A unique index on copy_id for loans with no return date will address Rule 4.
-- No unique constraint on member_id in loan allows Rule 5.
-- Date checks will enforce due_at > borrowed_at and returned_at ≥ borrowed_at when returned_at is present, addressing Rules 6 and 7.
-- The return operation will update only an open loan and retain its row, addressing Rule 8. This behaviour needs transaction logic and testing, not just a column definition.
+- **Rules 1 and 2:** I will prevent repeated membership numbers, emails and copy barcodes using unique constraints.
+- **Rules 2 and 3:** I will use required foreign keys so each copy has an existing book, and each loan has an existing member and copy.
+- **Rule 4:** I will allow only one open loan per copy. A unique index will check copy_id only where returned_at is missing.
+- **Rule 5:** I will allow member_id to repeat in loan so a member can borrow different copies.
+- **Rules 6 and 7:** I will check that the due date is after borrowing, and any return date is not before borrowing.
+- **Rule 8:** My return operation will update only an open loan and keep its history. I will test this when I implement transactions.
 
-Availability comes from the absence of an open loan. An overdue loan has no return date and its due time has passed. Separate stored availability and overdue flags are unnecessary for this design.
+I will find available copies by checking for no open loan. I will find overdue loans by checking for a missing return date and a due date that has passed. I do not need separate availability or overdue fields.
