@@ -1,6 +1,6 @@
 # Library Borrowing System Database Design
 
-## My entities
+## Entities
 
 I chose four entities for my library borrowing system:
 
@@ -13,7 +13,7 @@ I chose four entities for my library borrowing system:
 
 I kept book and book_copy separate. For example, the library may have three copies of *Things Fall Apart*. I record the book details once, give each copy its own barcode, and use the loan to record which copy a member borrowed.
 
-### My attributes and keys
+## Attributes and keys
 
 I use an automatically generated ID for each record. In the tables below, **unique** means no repeated values. **Required** means the value cannot be `NULL` (missing); checking for blank text is a separate rule.
 
@@ -28,9 +28,9 @@ I use an automatically generated ID for each record. In the tables below, **uniq
 
 I leave returned_at empty until the copy is returned. For example, a new loan has a borrowing date and due date, but no return date yet.
 
-**My assumption:** I record editions with an ISBN, and each ISBN appears once in book.
+**Design assumption:** Each book edition has an ISBN, and each ISBN appears once in book.
 
-### My relationships
+## Relationships
 
 | Tables linked | Relationship | Meaning |
 | --- | --- | --- |
@@ -40,13 +40,13 @@ I leave returned_at empty until the copy is returned. For example, a new loan ha
 
 For example, copy 10 can be borrowed in January and again in February. I keep both loan records, but only one can be open at a time. An open loan has no return date. A foreign key links the records; it does not stop the copy being lent twice at the same time.
 
-### How I will apply my rules
+## Business rules and constraints
 
-- **Rules 1 and 2:** I will prevent repeated membership numbers, emails and copy barcodes using unique constraints.
-- **Rules 2 and 3:** I will use required foreign keys so each copy has an existing book, and each loan has an existing member and copy.
-- **Rule 4:** I will allow only one open loan per copy. A unique index will check copy_id only where returned_at is missing.
-- **Rule 5:** I will allow member_id to repeat in loan so a member can borrow different copies.
-- **Rules 6 and 7:** I will check that the due date is after borrowing, and any return date is not before borrowing.
-- **Rule 8:** My return operation will update only an open loan and keep its history. I will test this when I implement transactions.
+- **Rules 1 and 2:** Membership numbers, emails and copy barcodes are unique.
+- **Rules 2 and 3:** Required foreign keys link each copy to an existing book, and each loan to an existing member and copy.
+- **Rule 4:** Each copy has at most one open loan. The design uses a unique index on copy_id only for loans where returned_at is missing.
+- **Rule 5:** member_id can repeat in loan, allowing a member to borrow different copies.
+- **Rules 6 and 7:** Date checks require the due date to be after borrowing, and any return date to be on or after borrowing.
+- **Rule 8:** Returning a copy closes only its open loan and keeps the loan record. This rule needs transaction logic, not just a key.
 
-I will find available copies by checking for no open loan. I will find overdue loans by checking for a missing return date and a due date that has passed. I do not need separate availability or overdue fields.
+A copy is available when it has no open loan. A loan is overdue when its due date has passed and it has no return date. These can be calculated, so the design has no separate availability or overdue fields.
