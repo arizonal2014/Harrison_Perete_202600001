@@ -28,4 +28,3 @@ The library screenshots are stored in this folder beside the SQL and design file
 | Record Counts | [RecordCounts](Harrison_Perete_202600001_P1_RecordCounts.jpg) |
 
 The constraint-test screenshots show six expected rejections. The final counts are 2 members, 1 book, 3 physical copies and 3 loans. The normalisation screenshot contains illustrative tables; the insert and test screenshots show the executed database records.
-
