@@ -6,7 +6,7 @@ A library borrowing system stores members, book records, physical copies and loa
 
 ## Users
 
-Members borrow and return copies. Library staff register members, maintain the catalogue, record loans and returns, and review overdue loans. These are business roles; we are not building a login system.
+Members borrow and return copies. Library staff register members, maintain the catalogue, record loans and returns, and review overdue loans.
 
 ## Main operations
 
