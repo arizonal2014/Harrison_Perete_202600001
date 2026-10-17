@@ -6,7 +6,7 @@ Student ID: 202600001 (dummy ID for the demonstration)
 
 ## Case study
 
-To be selected in the next step.
+Library borrowing system: register members, catalogue books and physical copies, issue and return loans, and identify overdue loans.
 
 ## Portfolio folders
 
