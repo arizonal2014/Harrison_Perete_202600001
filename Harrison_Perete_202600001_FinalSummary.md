@@ -16,6 +16,12 @@ The relational design has four tables: member, book, book_copy and loan. Separat
 
 The normalisation examples show a borrowing list becoming one borrowing per row in 1NF. Copy details are separated from the combined borrowing key in 2NF. Member details and book titles move to their own tables in 3NF. The schema, ER diagram and normalisation tables are saved in Portfolio 1. Six invalid inserts are rejected by the intended rules. At that stage, the records contain two members, one book, three copies and three loans.
 
+![Library ER diagram: member, loan, book_copy and book](images/Library_ERDiagram.svg)
+
+Figure 1. The four tables and their relationships. PK identifies a row, FK links tables and UK marks a unique value. Each loan belongs to one member and one copy; each copy belongs to one book. A member, copy or book can have zero or many related records.
+
+<!-- PAGE BREAK -->
+
 ## Portfolio 2: Query Processing and Optimisation
 
 Three queries retrieve open loans, available copies and loan counts per member. At this stage, there are two open loans; LIB003 is available; Ada has two loans and Ben has one. A separate table contains 100,000 generated closed-loan records for the speed test, leaving the original lending records unchanged.
@@ -30,8 +36,6 @@ The same date-range count returns 24 before and after an index on borrowed_at. E
 
 The index avoids scanning unrelated dates in this test. These cached, shared-Codespace measurements do not predict every workload. Indexes also require storage and maintenance.
 
-<!-- PAGE BREAK -->
-
 ## Portfolio 3: Transactions and Concurrency
 
 A return for LIB002 is saved with COMMIT. Repeating the conditional return changes zero rows. In another transaction, a valid LIB003 loan is followed by an invalid due date. ROLLBACK removes the unsaved loan while keeping the earlier committed return.
@@ -44,6 +48,8 @@ MongoDB stores four documents in library_events.borrowing_events. Each event emb
 
 The insert is acknowledged for E001-E004, and the count is four. The LIB002 query returns its borrowing followed by its return. Searching details.condition for good returns E002, Ada's return. These are separately entered sample events, not automatic PostgreSQL synchronisation or a complete audit log. Embedded names are snapshots. PostgreSQL remains responsible for lending constraints.
 
+<!-- PAGE BREAK -->
+
 ## Portfolio 5: Distributed and Cloud Database Exercise
 
 The discussion proposes three voting, data-holding MongoDB replica members on separate hosts and failure zones. A primary accepts event writes; secondaries copy changes. If a primary fails, a reachable majority can elect an eligible replacement. Writes pause during the election. Majority acknowledgement and possible secondary lag affect durability, availability and recent-event reads [5].
@@ -52,23 +58,13 @@ Sharding divides records rather than copying the full set. Four sample events do
 
 ## Evidence
 
-The repository contains the scripts, explanations and screenshots. Earlier evidence records earlier database states; Portfolio 3 changes the original loans.
-
-| Activity | Evidence location in the repository |
-| --- | --- |
-| P1 | [Design, ER diagram, schema, normalisation and tests](https://github.com/arizonal2014/Harrison_Perete_202600001/tree/main/portfolio-1-database-design) |
-| P2 | [Queries, execution plans and before/after screenshots](https://github.com/arizonal2014/Harrison_Perete_202600001/tree/main/portfolio-2-query-optimisation) |
-| P3 | [Commit, rollback, waiting sessions and final result](https://github.com/arizonal2014/Harrison_Perete_202600001/tree/main/portfolio-3-transactions-concurrency) |
-| P4 | [Document script, setup and query screenshots](https://github.com/arizonal2014/Harrison_Perete_202600001/tree/main/portfolio-4-nosql) |
-| P5 | [Distributed-design discussion and screenshot](https://github.com/arizonal2014/Harrison_Perete_202600001/tree/main/portfolio-5-distributed-cloud) |
-
-<!-- PAGE BREAK -->
+Scripts, explanations and screenshots: [P1 design and tests](https://github.com/arizonal2014/Harrison_Perete_202600001/tree/main/portfolio-1-database-design), [P2 plans and timings](https://github.com/arizonal2014/Harrison_Perete_202600001/tree/main/portfolio-2-query-optimisation), [P3 transactions](https://github.com/arizonal2014/Harrison_Perete_202600001/tree/main/portfolio-3-transactions-concurrency), [P4 events](https://github.com/arizonal2014/Harrison_Perete_202600001/tree/main/portfolio-4-nosql), [P5 proposal](https://github.com/arizonal2014/Harrison_Perete_202600001/tree/main/portfolio-5-distributed-cloud). Earlier screenshots record earlier database states; Portfolio 3 changes the original loans.
 
 ## Individual reflection
 
 Example only. Replace this paragraph with your own design choice, difficulty, action and lesson.
 
-Separating a book from its copies makes the lending rule easier to express: a loan belongs to a physical copy, not just a title. The two-session result illustrates a less obvious problem. An availability query can find no committed loan while another session is already borrowing the copy. The waiting insert and duplicate-key error show why the database constraint matters. The index comparison also separates a correct query from an efficient query: both counts are 24, but the plans do different amounts of work. A useful next improvement is to test more date ranges and record index size and write overhead, rather than assuming one fast result applies to all queries.
+Separating books from copies makes the lending rule easier to express. The two-session example shows a less obvious problem: a copy can appear available while another session has an uncommitted loan. Checking the waiting session and the final duplicate-key error explains why the unique index matters. The query comparison also shows that the same correct result can involve different amounts of work. Testing other date ranges and index maintenance costs would make the performance analysis more useful.
 
 ## References
 
@@ -86,6 +82,8 @@ Accessed 17 October 2026. Additional topic-specific references appear in the por
 
 ## AI-use declaration
 
-For this worked example, OpenAI Codex assisted with design explanations, SQL and MongoDB scripts, documentation, command execution and evidence capture. The summary was checked against the saved scripts and recorded outputs, including constraint errors, query plans and the two-session result. The reflection above is illustrative, not a student's account of personal experience.
+Sample only: use this if AI guided you and you executed the work yourself.
 
-For an individual submission, replace this declaration with the tools and assistance actually used and the checks you personally completed.
+“I used [AI tool name] to explain database concepts and help review the structure and wording of my portfolio. I executed the database commands myself, checked the results against the assessment requirements and corrected issues before submission. I understand the work and remain responsible for its accuracy.”
+
+Replace the tool name. Include any help with scripts, analysis or execution if used. Only claim checks you personally completed.
